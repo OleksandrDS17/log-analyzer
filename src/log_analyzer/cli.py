@@ -1,22 +1,41 @@
+from __future__ import annotations
+
 import argparse
 from pathlib import Path
-from .analyzer import analyze_lines, summary
 
-def main():
-    p = argparse.ArgumentParser(prog="log-analyzer", description="Analyze log files for common patterns.")
-    p.add_argument("path", help="Path to log file")
-    p.add_argument("--show", type=int, default=20, help="Show first N matches")
-    p.add_argument("--summary", action="store_true", help="Print summary counts")
-    args = p.parse_args()
+from log_analyzer.core import DEFAULT_PATTERNS, analyze_lines, read_lines, summarize_matches
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="log-analyzer",
+        description="Analyze log files for common patterns.",
+    )
+    parser.add_argument("path", help="Path to log file")
+    parser.add_argument("--show", type=int, default=20, help="Show first N matches")
+    parser.add_argument("--summary", action="store_true", help="Print summary counts")
+    return parser
+
+
+def main() -> None:
+    parser = build_parser()
+    args = parser.parse_args()
 
     path = Path(args.path)
-    with path.open("r", errors="ignore") as f:
-        matches = analyze_lines(f)
+
+    if not path.exists():
+        parser.error(f"File not found: {path}")
+
+    if not path.is_file():
+        parser.error(f"Not a file: {path}")
+
+    lines = read_lines(path)
+    result = analyze_lines(lines, DEFAULT_PATTERNS)
 
     if args.summary:
-        s = summary(matches)
-        for k, v in sorted(s.items(), key=lambda x: (-x[1], x[0])):
-            print(f"{k}: {v}")
+        summary = summarize_matches(result.matches)
+        for tag, count in sorted(summary.items(), key=lambda item: (-item[1], item[0])):
+            print(f"{tag}: {count}")
 
-    for m in matches[: args.show]:
-        print(f"{m.line_no:>6} [{m.tag}] {m.line}")
+    for match in result.matches[: args.show]:
+        print(f"{match.line_no:>6} [{match.tag}] {match.line}")
