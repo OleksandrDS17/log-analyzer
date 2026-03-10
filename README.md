@@ -29,7 +29,26 @@ The tool helps to identify common error patterns, warnings and operational anoma
 - detecting failed login attempts  
 - searching for network/service interruptions  
 - extracting warnings from application logs  
-- preparing data for incident analysis  
+- preparing data for incident analysis
+
+Neue Struktur
+log-analyzer/
+├── pyproject.toml
+├── README.md
+└── src/
+    └── log_analyzer/
+        ├── __init__.py
+        ├── cli.py
+        ├── models.py
+        ├── gui/
+        │   ├── __init__.py
+        │   └── app.py
+        └── core/
+            ├── __init__.py
+            ├── analyzer.py
+            ├── parser.py
+            ├── patterns.py
+            └── summary.py
 
 ## Example execution
 ```bash
